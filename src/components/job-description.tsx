@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   Dialog,
   DialogContent,
@@ -17,49 +16,40 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { type Job } from "@/app/page";
 
-type Job = {
-  id: number;
-  companyName: string;
-  jobRole: string;
-  description: string;
+type JobCardsProps = {
+  jobs: Job[];
+  onAddJob: (newJobData: Omit<Job, "id">) => void;
+  onUpdateJob: (updatedJob: Job) => void;
 };
 
-export function JobCards() {
-  const [jobs, setJobs] = useState<Job[]>([]);
+export function JobCards({ jobs, onAddJob, onUpdateJob }: JobCardsProps) {
 
   const [companyName, setCompanyName] = useState("");
   const [jobRole, setJobRole] = useState("");
   const [description, setDescription] = useState("");
-
-  
   const [editingJob, setEditingJob] = useState<Job | null>(null);
 
-  const handleAddJob = () => {
+  const handleAddJobClick = () => {
     if (!companyName.trim() || !jobRole.trim() || !description.trim()) {
       alert("Please fill out all fields.");
       return;
     }
-    const newJob: Job = { id: Date.now(), companyName, jobRole, description };
-    setJobs([...jobs, newJob]);
+    onAddJob({ companyName, jobRole, description });
     setCompanyName("");
     setJobRole("");
     setDescription("");
   };
 
-  
-  const handleUpdateJob = () => {
+  const handleUpdateJobClick = () => {
     if (!editingJob) return;
-
-    setJobs(
-      jobs.map((job) => (job.id === editingJob.id ? editingJob : job))
-    );
+    onUpdateJob(editingJob);
     setEditingJob(null);
   };
 
   return (
     <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @container/main">
-      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-semibold">Add Job Description</CardTitle>
@@ -78,12 +68,11 @@ export function JobCards() {
               <Label htmlFor="desc">Description:</Label>
               <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
-            <Button onClick={handleAddJob} type="button">Add</Button>
+            <Button onClick={handleAddJobClick} type="button">Add</Button>
           </div>
         </CardContent>
       </Card>
 
-      
       {jobs.length > 0 && (
         <Card>
           <CardHeader>
@@ -91,7 +80,6 @@ export function JobCards() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {jobs.map((job) => (
-              
               <Dialog key={job.id} onOpenChange={(isOpen) => !isOpen && setEditingJob(null)}>
                 <DialogTrigger asChild>
                   <Badge
@@ -106,7 +94,6 @@ export function JobCards() {
                   <DialogHeader>
                     <DialogTitle>Edit Job Description</DialogTitle>
                   </DialogHeader>
-                  
                   {editingJob && (
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
@@ -127,7 +114,7 @@ export function JobCards() {
                     <DialogClose asChild>
                       <Button type="button" variant="secondary">Cancel</Button>
                     </DialogClose>
-                    <Button type="button" onClick={handleUpdateJob}>Save Changes</Button>
+                    <Button type="button" onClick={handleUpdateJobClick}>Save Changes</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
