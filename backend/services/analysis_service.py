@@ -11,7 +11,7 @@ def get_final_verdict_and_suggestions(score: int, hard_analysis: dict, soft_anal
     Uses Gemini to generate a final verdict and suggestions based on all analysis.
     """
     print("Generating final verdict and suggestions...")
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=settings.GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=settings.GOOGLE_API_KEY)
     
     if score >= 75:
         verdict_category = "High"

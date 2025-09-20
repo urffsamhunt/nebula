@@ -15,13 +15,18 @@ def hard_compare(resume_text: str, jd_text: str) -> dict:
     print("Performing hard comparison...")
     # Placeholder Logic: Implement your keyword matching logic here.
     # For now, we'll return a dummy response.
-    jd_keywords = {"python", "fastapi", "sql", "docker", "communication"}
+    # jd_keywords = {"python", "fastapi", "sql", "docker", "communication"}
+    
+    jd_keywords = set(jd_text.lower().split())
     resume_words = set(resume_text.split())
     
     found_keywords = jd_keywords.intersection(resume_words)
     missing_keywords = list(jd_keywords - found_keywords)
     
     score = (len(found_keywords) / len(jd_keywords)) * 100 if jd_keywords else 0
+    
+    print(f"Found keywords: {found_keywords}")
+    print(f"Missing keywords: {missing_keywords}")
     
     return {"score": score, "missing_keywords": missing_keywords}
 
@@ -34,14 +39,14 @@ def soft_compare_langchain(resume_text: str, jd_text: str) -> str:
     """
     print("Performing soft comparison with LangChain...")
     # 1. Initialize the model
-    llm = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=settings.GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=settings.GOOGLE_API_KEY)
     
     # 2. Create a prompt template
     template = """
     Analyze the following resume and job description. Provide a brief, one-paragraph analysis
     on how well the resume aligns with the job requirements.
     
-    JOB DESCRIPTION:
+    JOB DESCRIP TION:
     {job_description}
     
     RESUME:
@@ -66,7 +71,7 @@ def get_embedding_fit_score(resume_text: str, jd_text: str) -> int:
     """
     print("Calculating embedding fit score...")
     # 1. Initialize the embedding model
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=settings.GOOGLE_API_KEY)
+    embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001", google_api_key=settings.GOOGLE_API_KEY)
     
     # 2. Get embeddings for both texts
     resume_embedding = embeddings.embed_query(resume_text)
@@ -82,4 +87,29 @@ def get_embedding_fit_score(resume_text: str, jd_text: str) -> int:
     # Scale from [-1, 1] to [0, 100]
     score = int((similarity + 1) / 2 * 100)
     
+    print(score)
+
     return score
+
+def get_final_verdict_and_suggestions(score: int, hard_analysis: dict, soft_analysis: str) -> dict:
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=settings.GOOGLE_API_KEY)
+        
+    if score >= 75: 
+        verdict_category = "High"
+    elif score >= 50: 
+        verdict_category = "Medium"
+    else: 
+        verdict_category = "Low"
+
+    prompt = f"""
+    Given the following analysis of a resume against a job description:
+    - Overall Relevance Score: {score}/100
+    - Missing Keywords: {', '.join(hard_analysis['missing_keywords'])}
+    - Semantic Analysis: "{soft_analysis}"
+    - Verdict Category: {verdict_category} suitability
+    Please provide concise, actionable suggestions for the candidate to improve their resume.
+    SUGGESTIONS:
+    """
+    
+    suggestions = llm.invoke(prompt).content
+    return {"verdict": verdict_category, "suggestions": suggestions}

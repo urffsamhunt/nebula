@@ -1,23 +1,11 @@
 # services/extraction.py
 import pdfplumber
 import docx2txt
-from fastapi import UploadFile
 import io
 
-def extract_text_from_file(file: UploadFile, file_format: str) -> str:
-    """
-    Extracts text from an uploaded file based on its format.
-    
-    Args:
-        file: The uploaded file object from FastAPI.
-        file_format: The format of the file ('pdf', 'txt', 'docx').
-
-    Returns:
-        The extracted text as a string.
-    """
+def extract_text_from_file_content(file_bytes: bytes, file_format: str) -> str:
+    """Extracts text from file content bytes based on its format."""
     text = ""
-    file_bytes = file.file.read()
-
     if file_format == 'pdf':
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
             for page in pdf.pages:
@@ -28,5 +16,4 @@ def extract_text_from_file(file: UploadFile, file_format: str) -> str:
         text = file_bytes.decode('utf-8')
     else:
         raise ValueError("Unsupported file format")
-        
     return text
