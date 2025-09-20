@@ -42,7 +42,7 @@ export function ResumeCards() {
             <div className="flex flex-col gap-6">
                 <div className="grid w-full max-w-sm items-center gap-3">
                     <Label htmlFor="file">Upload resume</Label>
-                    <Input id="file" type="file" accept=".pdf,.odt,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
+                    <Input id="file" type="file" accept=".pdf,.odt,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required  multiple/>
                 </div>
                 <div className="grid gap-3">
                     <Label htmlFor="password">Choose a job drescription :</Label>
