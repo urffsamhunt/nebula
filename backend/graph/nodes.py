@@ -21,12 +21,12 @@ def normalize_texts(state: GraphState) -> dict:
     resume_text = state["resume_text"]
     jd_text = state["job_description"]
     
-    norm_resume = normalization.normalize_text(resume_text)
+    # norm_resume = normalization.normalize_text(resume_text)
     norm_jd = normalization.normalize_text(jd_text)
     
     progress = state["progress"] + ["Texts Normalized"]
     return {
-        "normalized_resume": norm_resume,
+        "normalized_resume": state["resume_text"],
         "normalized_jd": norm_jd,
         "progress": progress
     }
@@ -62,7 +62,7 @@ def aggregate_results(state: GraphState) -> dict:
     hard_score = state["hard_analysis"]["score"]
 
     # Simple weighted average for final score
-    final_score = int(0.6 * embedding_score + 0.4 * hard_score)
+    final_score = int(0.65 * embedding_score + 0.35 * hard_score)
     
     final_result = comparison.get_final_verdict_and_suggestions(
         score=final_score,

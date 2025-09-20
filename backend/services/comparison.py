@@ -4,31 +4,56 @@ from langchain.prompts import PromptTemplate
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from core.config import settings
+from thefuzz import process
 
-def hard_compare(resume_text: str, jd_text: str) -> dict:
+def hard_compare(resume_keywords: list, jd_keywords: list) -> dict:
     """
-    Hard compares the resume and job description for keyword matches.
+    Hard compares the resume and job description using fuzzy keyword matching.
     
     Returns:
         A dictionary with a score and missing keywords.
     """
-    print("Performing hard comparison...")
-    # Placeholder Logic: Implement your keyword matching logic here.
-    # For now, we'll return a dummy response.
-    # jd_keywords = {"python", "fastapi", "sql", "docker", "communication"}
-    
-    jd_keywords = set(jd_text.lower().split())
-    resume_words = set(resume_text.split())
-    
-    found_keywords = jd_keywords.intersection(resume_words)
-    missing_keywords = list(jd_keywords - found_keywords)
-    
+    print("Performing fuzzy hard comparison...")
+
+    # A similarity score of 85+ is generally a good match for technical terms.
+    # This value can be tuned as needed.
+    SIMILARITY_THRESHOLD = 85
+
+    # 1. Tokenize the inputs into unique sets of keywords.
+    # The jd_text and resume_text are expected to be pre-processed,
+    # space-separated strings of keywords from the normalization step.
+
+    # Handle the edge case where there are no keywords to compare.
+    if not jd_keywords:
+        return {"score": 0, "missing_keywords": []}
+    if not resume_keywords:
+        return {"score": 0, "missing_keywords": list(jd_keywords)}
+
+    found_keywords = set()
+    missing_keywords = set()
+
+    # 2. Iterate through each required keyword from the job description.
+    for keyword in jd_keywords:
+        # 3. Find the best fuzzy match for the keyword within the resume.
+        # process.extractOne returns a tuple: (best_match, score)
+        best_match = process.extractOne(keyword, resume_keywords)
+        
+        # 4. If a sufficiently good match is found, count it.
+        if best_match and best_match[1] >= SIMILARITY_THRESHOLD:
+            found_keywords.add(keyword)
+        else:
+            missing_keywords.add(keyword)
+
+    # 5. Calculate the final score based on found keywords.
     score = (len(found_keywords) / len(jd_keywords)) * 100 if jd_keywords else 0
     
-    print(f"Found keywords: {found_keywords}")
-    print(f"Missing keywords: {missing_keywords}")
+    print(f"Found keywords (fuzzy): {found_keywords}")
+    print(f"Missing keywords (fuzzy): {missing_keywords}")
     
-    return {"score": score, "missing_keywords": missing_keywords}
+    return {"score": score, "missing_keywords": sorted(list(missing_keywords))}
+
+
+
 
 def soft_compare_langchain(resume_text: str, jd_text: str) -> str:
     """
