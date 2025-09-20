@@ -20,7 +20,9 @@ dependencies = [
     "scikit-learn (>=1.7.2,<2.0.0)",
     "langgraph (>=0.6.7,<0.7.0)",
     "langchain-core (>=0.3.76,<0.4.0)",
-    "sse-starlette (>=3.0.2,<4.0.0)"
+    "sse-starlette (>=3.0.2,<4.0.0)",
+    "thefuzz[speedup] (>=0.22.1,<0.23.0)",
+    "grandalf (>=0.8,<0.9)"
 ]
 
 [tool.poetry]
