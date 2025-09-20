@@ -6,6 +6,7 @@ import json
 
 from api.v1.schemas.analysis import AnalysisResponse
 from graph.workflow import graph_app
+from core import db
 
 router = APIRouter()
 
@@ -73,3 +74,65 @@ async def analyze_resume_stream(
 
     # 3. Return the streaming response
     return EventSourceResponse(analysis_event_generator(initial_state))
+
+
+
+@router.post("/save-job-description", status_code=status.HTTP_200_OK)
+async def save_job_description(
+    company_name: str = Form(..., description="The company name"),
+    job_role: str = Form(..., description="The job role/title"),
+    description: str = Form(..., description="The job description text to be saved.")
+):
+    """
+    Saves the provided job description for future analysis into sqlite.
+    """
+    try:
+        row_id = db.save_job_description(company_name=company_name, job_role=job_role, description=description)
+        saved = db.get_job_description(row_id)
+        saved_dict = dict(saved) if saved is not None else None
+        return {"message": "Job description saved successfully.", "id": row_id, "saved": saved_dict}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while saving the job description: {str(e)}"
+        )
+    
+
+
+@router.get("/get-job-description/{job_id}", status_code=status.HTTP_200_OK)
+async def get_job_description(job_id: int):
+    """
+    Fetches a saved job description by its ID.
+    """
+    try:
+        saved = db.get_job_description(job_id)
+        if saved is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Job description with ID {job_id} not found."
+            )
+        saved_dict = dict(saved)
+        return {"job_description": saved_dict}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching the job description: {str(e)}"
+        )   
+    
+
+@router.get("/all-job-descriptions", status_code=status.HTTP_200_OK)
+async def all_job_descriptions():
+    """
+    Fetches all saved job descriptions.
+    """
+    try:
+        all_descriptions = db.get_all_job_description()
+        return {"job_descriptions": all_descriptions}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching job descriptions: {str(e)}"
+        )
+    
