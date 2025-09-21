@@ -14,7 +14,7 @@ export type Job = {
 };
 
 export default function Home() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://letapreemas-nebula-resume-api.hf.space";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "letapreemas-nebula-resume-api.hf.space";
 
   const [activeSection, setActiveSection] = useState("Resume Evaluation");
   
@@ -27,7 +27,7 @@ export default function Home() {
       body.append('job_role', newJobData.jobRole)
       body.append('description', newJobData.description)
 
-      const res = await fetch(`${API_BASE}/api/v1/save-job-description`, {
+      const res = await fetch(`https://${API_BASE}/api/v1/save-job-description`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -68,7 +68,7 @@ export default function Home() {
       body.append('job_role', updatedJob.jobRole)
       body.append('description', updatedJob.description)
 
-      const res = await fetch(`${API_BASE}/api/v1/job-descriptions/${updatedJob.id}`, {
+      const res = await fetch(`https://${API_BASE}/api/v1/job-descriptions/${updatedJob.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
