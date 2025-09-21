@@ -41,7 +41,7 @@ def run_comparisons(state: GraphState) -> dict:
     
     # Soft and embedding comparisons use original text for better context
     soft_analysis = comparison.soft_compare_langchain(
-        state["resume_text"], state["job_description"]
+        state["normalized_resume"], state["normalized_jd"]
     )
     embedding_score = comparison.get_embedding_fit_score(
         state["resume_text"], state["job_description"]

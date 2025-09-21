@@ -87,34 +87,62 @@ def soft_compare_langchain(resume_text: str, jd_text: str) -> str:
     
     return result.content
 
-def get_embedding_fit_score(resume_text: str, jd_text: str) -> int:
+def get_embedding_fit_score(resume_keywords: list[str], jd_keywords: list[str]) -> int:
     """
-    Calculates a fit score based on the cosine similarity of text embeddings.
-    
-    Returns:
-        A score between 0 and 100.
+    Calculates a "strict" fit score by ensuring each keyword in the job description
+    has a semantically similar counterpart in the resume. This version iterates
+    to stay within free-tier API limits and applies a penalty to non-perfect
+    matches to "widen the gap" between scores.
     """
-    print("Calculating embedding fit score...")
-    # 1. Initialize the embedding model
-    embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001", google_api_key=settings.GOOGLE_API_KEY)
+    print("Calculating strict embedding fit score (widened gap)...")
     
-    # 2. Get embeddings for both texts
-    resume_embedding = embeddings.embed_query(resume_text)
-    jd_embedding = embeddings.embed_query(jd_text)
-    
-    # 3. Calculate cosine similarity and scale to 0-100
-    # Reshape for sklearn's cosine_similarity function
-    resume_vec = np.array(resume_embedding).reshape(1, -1)
-    jd_vec = np.array(jd_embedding).reshape(1, -1)
-    
-    similarity = cosine_similarity(resume_vec, jd_vec)[0][0]
-    
-    # Scale from [-1, 1] to [0, 100]
-    score = int((similarity + 1) / 2 * 100)
-    
-    print(score)
+    if not jd_keywords or not resume_keywords:
+        return 0
 
-    return score
+    try:
+        # 1. Initialize the embedding model with the correct API identifier.
+        embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001", google_api_key=settings.GOOGLE_API_KEY)
+        
+        # 2. Use embed_query in a loop to process keywords one by one.
+        jd_embeddings = embeddings.embed_document(jd_keywords)
+        resume_embeddings = embeddings.embed_document(resume_keywords)
+
+        jd_vecs = np.array(jd_embeddings)
+        resume_vecs = np.array(resume_embeddings)
+
+        # 3. For each JD keyword, find its best match and apply a penalty.
+        # This avoids creating the full similarity matrix at once.
+        penalized_scores = []
+        for jd_vec in jd_vecs:
+            # Compare one JD vector against all resume vectors
+            similarities = cosine_similarity(jd_vec.reshape(1, -1), resume_vecs)[0]
+            
+            # Find the best match score for the current JD keyword
+            best_match_score = np.max(similarities)
+            
+            # --- "WIDEN THE GAP" ---
+            # Apply an exponential penalty. Squaring the score (power of 2)
+            # punishes scores below 1.0 more heavily.
+            # e.g., a 0.9 similarity becomes 0.81, but a 0.7 similarity drops to 0.49.
+            # A higher exponent (e.g., 3) would be even stricter.
+            penalized_score = best_match_score ** 2
+            penalized_scores.append(penalized_score)
+
+        # 4. The final score is the average of these penalized best-match scores.
+        average_penalized_similarity = np.mean(penalized_scores)
+        
+        # 5. Scale the score to the 0-100 range.
+        # Since cosine similarity for these embeddings is in the [0, 1] range,
+        # we can directly scale the result by 100.
+        score = int(average_penalized_similarity * 100)
+        
+        print(f"Strict embedding score (widened): {score}")
+        return score
+        
+    except Exception as e:
+        print(f"Error calculating embedding fit score: {e}")
+        # Return a default score of 0 if the embedding service fails
+        return 0
 
 def get_final_verdict_and_suggestions(score: int, hard_analysis: dict, soft_analysis: str) -> dict:
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=settings.GOOGLE_API_KEY)

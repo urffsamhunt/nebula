@@ -114,7 +114,9 @@ export function JobCards({ jobs, onAddJob, onUpdateJob }: JobCardsProps) {
                     <DialogClose asChild>
                       <Button type="button" variant="secondary">Cancel</Button>
                     </DialogClose>
+                    <DialogTrigger asChild>
                     <Button type="button" onClick={handleUpdateJobClick}>Save Changes</Button>
+                    </DialogTrigger>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
