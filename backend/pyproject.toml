@@ -22,7 +22,11 @@ dependencies = [
     "langchain-core (>=0.3.76,<0.4.0)",
     "sse-starlette (>=3.0.2,<4.0.0)",
     "thefuzz[speedup] (>=0.22.1,<0.23.0)",
-    "grandalf (>=0.8,<0.9)"
+    "grandalf (>=0.8,<0.9)",
+    "shiny (>=1.5.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "panel (>=1.8.1,<2.0.0)",
+    "bokeh (>=3.8.0,<4.0.0)"
 ]
 
 [tool.poetry]
