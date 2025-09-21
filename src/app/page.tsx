@@ -14,6 +14,8 @@ export type Job = {
 };
 
 export default function Home() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://letapreemas-nebula-resume-api.hf.space";
+
   const [activeSection, setActiveSection] = useState("Resume Evaluation");
   
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -25,7 +27,7 @@ export default function Home() {
       body.append('job_role', newJobData.jobRole)
       body.append('description', newJobData.description)
 
-      const res = await fetch('http://localhost:8000/api/v1/save-job-description', {
+      const res = await fetch(`${API_BASE}/api/v1/save-job-description`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -66,7 +68,7 @@ export default function Home() {
       body.append('job_role', updatedJob.jobRole)
       body.append('description', updatedJob.description)
 
-      const res = await fetch(`http://localhost:8000/api/v1/job-descriptions/${updatedJob.id}`, {
+      const res = await fetch(`${API_BASE}/api/v1/job-descriptions/${updatedJob.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -102,7 +104,7 @@ export default function Home() {
   useEffect(() => {
     const loadJobs = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/v1/all-job-descriptions');
+        const res = await fetch(`https://${API_BASE}/api/v1/all-job-descriptions`);
         if (!res.ok) {
           console.error('Failed to fetch job descriptions', await res.text());
           return;

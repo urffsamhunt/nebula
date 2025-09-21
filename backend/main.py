@@ -8,17 +8,12 @@ app = FastAPI(
     description="An API to analyze resumes against job descriptions using AI.",
     version="1.0.0"
 )
-origins = [
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://0.0.0.0:8000",
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
