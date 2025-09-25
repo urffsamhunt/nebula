@@ -4,7 +4,7 @@ An intelligent application that leverages Generative AI to analyze and score res
 
 ## ✨ Live Demo
 
-- **Frontend (Vercel):** [https://nebula-rho-umber.vercel.app/](nebula-rho-umber.vercel.app)
+- **Frontend (Vercel):** [https://nebula-rho-umber.vercel.app/](https://nebula-rho-umber.vercel.app)
     
 - **Backend API Docs (Hugging Face):** [https://letapreemas-nebula-resume-api.hf.space/docs](https://letapreemas-nebula-resume-api.hf.space/docs "null")
     
