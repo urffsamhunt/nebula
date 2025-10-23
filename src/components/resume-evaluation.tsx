@@ -29,6 +29,7 @@ type ResumeCardsProps = {
 };
 
 export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "letapreemas-nebula-resume-api.hf.space";
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   // overall fallback states (kept for compatibility)
   const [relevanceScore, setRelevanceScore] = useState<number>(0);
@@ -69,7 +70,7 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
       // mark as evaluating which disables the button and shows a spinner
       setIsEvaluating(true);
       // 1. Fetch the job description text from backend
-      const jdRes = await fetch(`http://localhost:8000/api/v1/get-job-description/${selectedJobId}`);
+      const jdRes = await fetch(`https://${API_BASE}/api/v1/get-job-description/${selectedJobId}`);
       if (!jdRes.ok) throw new Error("Failed to fetch job description.");
       const jdPayload = await jdRes.json();
       const jobDescriptionText = jdPayload?.job_description?.description ?? "";
@@ -94,7 +95,7 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
       formData.append("job_description", jobDescriptionText);
 
       // 3. Simple POST (non-streaming). The backend returns a JSON batch_results array.
-      const resp = await fetch("http://localhost:8000/api/v1/analyze-batch", {
+      const resp = await fetch(`https://${API_BASE}/api/v1/analyze-batch`, {
         method: "POST",
         body: formData as any,
       });
@@ -140,7 +141,7 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
   // Fetch saved evaluations from the backend and store them in state
   async function refreshEvaluations() {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/evaluations");
+      const res = await fetch(`https://${API_BASE}/api/v1/evaluations`);
       if (!res.ok) throw new Error(`Failed to fetch evaluations: ${res.status}`);
       const payload = await res.json();
       // payload.data is expected to be an array of saved evaluations
