@@ -13,14 +13,14 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Slider } from "@/components/ui/slider";
-// Local Job type (define here to avoid incorrect absolute import path)
-// Adjust fields to match your backend Job shape if needed.
 type Job = {
   id: string | number;
   jobRole: string;
   companyName: string;
 };
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import ReactMarkdown from 'react-markdown';
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "./ui/skeleton";
 
 type ResumeCardsProps = {
@@ -31,27 +31,23 @@ type ResumeCardsProps = {
 export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "letapreemas-nebula-resume-api.hf.space";
   const [selectedJobId, setSelectedJobId] = useState<string>("");
-  // overall fallback states (kept for compatibility)
   const [relevanceScore, setRelevanceScore] = useState<number>(0);
   const [missingDetails, setMissingDetails] = useState<string>("");
   const [verdict, setVerdict] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string>("");
 
-  // New state: store uploaded files and per-file results
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [selectedResumeIndex, setSelectedResumeIndex] = useState<number>(-1);
   const [perResults, setPerResults] = useState<
     Array<{
       name: string;
-      status: string; // pending | processing | success | error
+      status: string;
       result?: any;
       error?: string;
     }>
   >([]);
 
-  // Saved evaluations pulled from the backend
   const [savedEvals, setSavedEvals] = useState<any[]>([]);
-  // spinner / disabled state for the Evaluate button
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
 
   async function handleEvaluate() {
@@ -67,15 +63,12 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
     }
 
     try {
-      // mark as evaluating which disables the button and shows a spinner
       setIsEvaluating(true);
-      // 1. Fetch the job description text from backend
       const jdRes = await fetch(`https://${API_BASE}/api/v1/get-job-description/${selectedJobId}`);
       if (!jdRes.ok) throw new Error("Failed to fetch job description.");
       const jdPayload = await jdRes.json();
       const jobDescriptionText = jdPayload?.job_description?.description ?? "";
 
-      // 2. Build form data matching backend expectations
       const filesArray = Array.from(fileInput.files);
       setUploadedFiles(filesArray);
       setSelectedResumeIndex(filesArray.length > 0 ? 0 : -1);
@@ -83,18 +76,15 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
       const initialResults = filesArray.map((f) => ({ name: f.name, status: "pending" }));
       setPerResults(initialResults);
 
-      // immediately mark as processing so UI shows skeletons/spinner
       setPerResults((prev) => prev.map((p) => ({ ...p, status: "processing" })));
 
       const formData = new FormData();
       filesArray.forEach((file) => {
-        // backend expects field name 'resumes' for the list of UploadFile
         formData.append("resumes", file);
       });
       console.log(formData);
       formData.append("job_description", jobDescriptionText);
 
-      // 3. Simple POST (non-streaming). The backend returns a JSON batch_results array.
       const resp = await fetch(`https://${API_BASE}/api/v1/analyze-batch`, {
         method: "POST",
         body: formData as any,
@@ -106,7 +96,6 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
       }
 
       const payload = await resp.json();
-      // Expect payload.batch_results to be an array of per-file results
       if (Array.isArray(payload.batch_results)) {
         const updated = [...initialResults];
         payload.batch_results.forEach((item: any) => {
@@ -122,7 +111,6 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
         });
         setPerResults(updated);
       } else {
-        // unexpected shape — place entire payload into first entry
         setPerResults((prev) => {
           const copy = [...prev];
           copy[0] = { ...copy[0], status: payload.status ?? "error", result: payload };
@@ -133,18 +121,15 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
       console.error("Error evaluating resume:", error);
       alert("An error occurred while evaluating the resume. See console for details.");
     } finally {
-      // clear evaluating state regardless of outcome
       setIsEvaluating(false);
     }
   }
 
-  // Fetch saved evaluations from the backend and store them in state
   async function refreshEvaluations() {
     try {
       const res = await fetch(`https://${API_BASE}/api/v1/evaluations`);
       if (!res.ok) throw new Error(`Failed to fetch evaluations: ${res.status}`);
       const payload = await res.json();
-      // payload.data is expected to be an array of saved evaluations
       setSavedEvals(Array.isArray(payload.data) ? payload.data : []);
     } catch (err) {
       console.error("Failed to refresh evaluations:", err);
@@ -152,13 +137,12 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
     }
   }
 
-  // helper to derive the selected resume's result
   const selectedResult = selectedResumeIndex >= 0 && perResults[selectedResumeIndex]
     ? perResults[selectedResumeIndex]
     : null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2">
       <Card className="@container/card">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold">Resume Evaluation</CardTitle>
@@ -231,7 +215,6 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
                 <div className="text-sm text-muted-foreground self-center">Saved: {savedEvals.length}</div>
               </div>
 
-              {/* Scrollable list of uploaded resumes */}
               <div className="mt-4">
                 <Label>Uploaded Resumes</Label>
                 <div className="mt-2 max-h-48 overflow-y-auto border rounded p-2">
@@ -252,10 +235,9 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
                           </div>
                           <div className="text-xs text-muted-foreground flex items-center gap-2">
                             {r?.status === 'pending' || r?.status === 'processing' ? (
-                              // show a compact skeleton for ongoing evaluations
                               <Skeleton className="w-16 h-4" />
                             ) : (
-                              <>{r?.result ? `${Math.round((r.result.relevance_score ?? 0) * 100)/100}` : ''}</>
+                              <>{r?.result ? `${Math.round((r.result.relevance_score ?? 0) * 100) / 100}` : ''}</>
                             )}
                           </div>
                         </div>
@@ -265,7 +247,6 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
                 </div>
               </div>
 
-              {/* Optional: show a small list of saved evaluations fetched from DB */}
               <div className="mt-4">
                 <Label>Saved Evaluations (latest)</Label>
                 <div className="mt-2 max-h-36 overflow-y-auto border rounded p-2 text-sm">
@@ -301,7 +282,6 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
                 </div>
 
                 {selectedResult.status === 'pending' || selectedResult.status === 'processing' ? (
-                  // show skeleton placeholders while processing
                   <>
                     <div className="grid gap-3">
                       <Label>Relevance Score:</Label>
@@ -330,12 +310,22 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
                 ) : (
                   <>
                     <div className="grid gap-3">
-                      <Label>Relevance Score:</Label>
+                      <Label>Relevance Score: <span className="ml-2 font-bold text-lg">
+                        {Math.round(selectedResult.result?.relevance_score ?? 0)}
+                      </span></Label>
                       <Slider value={[selectedResult.result?.relevance_score ?? 0]} max={100} step={1} />
                     </div>
                     <div className="grid gap-3">
                       <Label>Missing Details:</Label>
-                      <span id="missing">{(selectedResult.result?.missing_keywords ?? []).join(", ")}</span>
+                      <div id="missing" className="flex flex-wrap gap-2">
+                        {(selectedResult.result?.missing_keywords ?? []).length > 0 ? (
+                          selectedResult.result.missing_keywords.map((keyword: string) => (
+                            <Badge variant="outline" key={keyword}>{keyword}</Badge>
+                          ))
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No missing details found.</span>
+                        )}
+                      </div>
                     </div>
                     <div className="grid gap-3">
                       <Label>Verdict:</Label>
@@ -343,7 +333,15 @@ export function ResumeCards({ jobs, onNavigate }: ResumeCardsProps) {
                     </div>
                     <div className="grid gap-3">
                       <Label>Suggestions for improvement:</Label>
-                      <span id="suggestions">{selectedResult.result?.suggestions ?? ''}</span>
+                      <div className="
+    prose prose-sm dark:prose-invert max-w-none 
+    prose-headings:text-base prose-headings:font-semibold 
+    prose-h2:mt-4 prose-h3:mt-3
+  ">
+                        <ReactMarkdown>
+                          {selectedResult.result?.suggestions ?? 'No suggestions available.'}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   </>
                 )}

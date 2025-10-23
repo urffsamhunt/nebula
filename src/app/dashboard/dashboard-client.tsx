@@ -25,7 +25,6 @@ export default function DashboardClient({ user }: { user: UserProp }) {
     const [jobs, setJobs] = useState<Job[]>([]);
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "letapreemas-nebula-resume-api.hf.space";
 
-
     const handleAddJob = async (newJobData: Omit<Job, 'id'>) => {
         try {
             const body = new URLSearchParams()

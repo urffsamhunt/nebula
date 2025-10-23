@@ -46,11 +46,8 @@ export default function SignUpPage() {
             </li>
           </ul>
         </div>
-        {/* This div creates a subtle dark overlay, similar to the original image's dark:brightness-[0.2] */}
         <div className="absolute inset-0 bg-black/20 dark:bg-black/50" />
-      </div>
-      {/* --- END OF REPLACEMENT --- */}
-      
+      </div>      
     </div>
   );
 }

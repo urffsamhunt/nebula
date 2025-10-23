@@ -1,11 +1,9 @@
 'use server';
- 
+
 import { signIn, signOut } from '@/auth';
 import { AuthError } from 'next-auth';
 import { createUser } from './data';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
- 
+
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
@@ -45,12 +43,21 @@ export async function signUp(prevState: string | undefined, formData: FormData) 
     if (error.message.includes('Email already exists')) {
       return 'An account with this email already exists.';
     }
+    console.error('Create user error:', error.message);
     return 'Database Error: Failed to create user.';
   }
 
   try {
-    await signIn('credentials', { email, password, redirectTo: '/dashboard' });
+    await signIn('credentials', { email, password });
   } catch (error) {
-    return 'Login failed after sign up. Please try logging in manually.';
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Login failed after sign up. Please try logging in manually.';
+        default:
+          return 'Something went wrong during sign in.';
+      }
+    }
+    throw error;
   }
 }
