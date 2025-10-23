@@ -67,7 +67,6 @@ export function JobCards({ jobs, onAddJob, onUpdateJob }: JobCardsProps) {
               <Label htmlFor="desc">Description:</Label>
               <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
-            <Input type="file" />
             <Button onClick={handleAddJobClick} type="button">Add</Button>
           </div>
         </CardContent>
