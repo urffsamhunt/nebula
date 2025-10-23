@@ -16,8 +16,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { type Job } from "@/app/page";
-
+import { type Job } from "@/app/dashboard/dashboard-client"
 type JobCardsProps = {
   jobs: Job[];
   onAddJob: (newJobData: Omit<Job, "id">) => void;

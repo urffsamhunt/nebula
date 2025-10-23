@@ -144,7 +144,7 @@ poetry run python -c "import nltk; nltk.download('punkt'); nltk.download('stopwo
 poetry run uvicorn main:app --reload --port 8000
 ```
 
-The API server will be running at `http://localhost:8000`.
+The API server will be running at `https://${API_BASE}`.
 
 ### 2. Frontend Setup (Next.js)
 
@@ -154,7 +154,7 @@ npm install
 
 # 2. Set up environment variables (Next.js expects .env.local at the project root)
 # Point the client to the backend API (use NEXT_PUBLIC_ prefix so it's exposed to the browser):
-echo "NEXT_PUBLIC_API_BASE=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_API_BASE=https://${API_BASE}" > .env.local
 
 # 3. Run the frontend development server
 npm run dev
