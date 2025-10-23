@@ -1,24 +1,32 @@
 import Link from "next/link";
+import Image from "next/image";
+import { GalleryVerticalEnd } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Target, PencilLine, FileCheck } from "lucide-react"; // Icons for features
+import { Target, PencilLine, FileCheck } from "lucide-react";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-900">
-      
+
       <header className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
         <nav className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Nebula</h1>
+          <div className="flex gap-3 items-center">
+            <div className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md">
+              <GalleryVerticalEnd className="size-6" />
+            </div>
+            <h1 className="text-2xl font-bold">Nebula</h1>
+          </div>
           <Link href="/login">
-            <Button variant="outline">Login</Button>
+            <Button variant="outline" className="shadow-sm">Login</Button>
           </Link>
         </nav>
       </header>
 
-      
+
       <main className="flex-1">
-        <section className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center py-20 sm:py-32">
+        <section className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center py-20 md:pt-10 sm:py-32">
+          <Image src={"/icon.png"} alt="Nebula Logo" width={160} height={160} className="mx-auto mb-6" />
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold">
             Stop Guessing. Start Impressing.
           </h2>
@@ -29,7 +37,7 @@ export default function LandingPage() {
           </p>
           <div className="mt-8">
             <Link href="/signup">
-              <Button size="lg">Get Started Free</Button>
+              <Button size="lg" className="shadow-sm">Get Started Free</Button>
             </Link>
           </div>
         </section>
