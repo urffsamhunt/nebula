@@ -16,7 +16,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { type Job } from "@/app/page";
+import { type Job } from "@/app/dashboard/page";
 
 type JobCardsProps = {
   jobs: Job[];

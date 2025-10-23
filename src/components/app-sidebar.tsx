@@ -1,5 +1,4 @@
 "use client"
-
 import * as React from "react"
 import {
   IconCamera,
@@ -7,6 +6,7 @@ import {
   IconDashboard,
   IconDatabase,
   IconFile,
+  IconHome,
   IconFileDescription,
   IconFileWord,
   IconFolder,
@@ -19,9 +19,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react"
 
-// import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
-// import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -33,17 +31,18 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+type UserProp = {
+  name: string;
+  email: string;
+  avatar: string;
+}
+
 const data = {
-  user: {
-    name: "demo",
-    email: "demouser@nebula.com",
-    avatar: "",
-  },
   navMain: [
     {
       title: "Resume Evaluation",
       url: "#",
-      icon: IconFile,
+      icon: IconReport,
     },
     {
       title: "Job Description",
@@ -55,11 +54,12 @@ const data = {
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user: UserProp;
   activeSection: string;
   onSectionChange: (section: string) => void;
 }
 
-export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, activeSection, onSectionChange, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -81,7 +81,7 @@ export function AppSidebar({ activeSection, onSectionChange, ...props }: AppSide
         <NavMain items={data.navMain} activeItem={activeSection} onItemClick={onSectionChange}/>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )

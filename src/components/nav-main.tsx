@@ -27,17 +27,15 @@ export function NavMain({ items, activeItem, onItemClick }: NavMainProps) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              {/* ✨ 2. Added onClick handler and conditional styling */}
               <SidebarMenuButton
                 onClick={() => onItemClick(item.title)}
                 tooltip={item.title}
                 className={
                   activeItem === item.title
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" // Style for the active item
-                    : "hover:bg-accent" // Style for inactive items
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "hover:bg-accent"
                 }
               >
-                {/* Ensure the icon is rendered correctly */}
                 <item.icon className="size-5" />
                 <span>{item.title}</span>
               </SidebarMenuButton>

@@ -13,7 +13,13 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Slider } from "@/components/ui/slider";
-import { type Job } from "@/app/page";
+// Local Job type (define here to avoid incorrect absolute import path)
+// Adjust fields to match your backend Job shape if needed.
+type Job = {
+  id: string | number;
+  jobRole: string;
+  companyName: string;
+};
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { Skeleton } from "./ui/skeleton";
 

@@ -1,162 +1,127 @@
-"use client";
-import { useState, useEffect } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { ResumeCards } from "@/components/resume-evaluation";
-import { JobCards } from "@/components/job-description";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Target, PencilLine, FileCheck } from "lucide-react"; // Icons for features
 
-export type Job = {
-  id: number;
-  companyName: string;
-  jobRole: string;
-  description: string;
-};
-
-export default function Home() {
-  const [activeSection, setActiveSection] = useState("Resume Evaluation");
-  
-  const [jobs, setJobs] = useState<Job[]>([]);
-
-  const handleAddJob = async (newJobData: Omit<Job, 'id'>) => {
-    try {
-      const body = new URLSearchParams()
-      body.append('company_name', newJobData.companyName)
-      body.append('job_role', newJobData.jobRole)
-      body.append('description', newJobData.description)
-
-      const res = await fetch('http://localhost:8000/api/v1/save-job-description', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
-      })
-
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Failed to save job')
-      }
-
-      const data = await res.json()
-      const saved = data.saved
-      const createdId = saved?.id ?? data.id ?? Date.now()
-      const newJob: Job = {
-        id: createdId,
-        companyName: saved?.company_name ?? newJobData.companyName,
-        jobRole: saved?.job_role ?? newJobData.jobRole,
-        description: saved?.description ?? newJobData.description,
-      }
-
-      setJobs((prev) => [...prev, newJob])
-      return newJob
-    } catch (err) {
-      console.error('handleAddJob error', err)
-      alert('Unable to save job description')
-      throw err
-    }
-  };
-
-  const handleUpdateJob = async (updatedJob: Job) => {
-    // Optimistically update UI and attempt to persist; roll back on failure.
-    const previous = [...jobs]
-    setJobs((prev) => prev.map((j) => (j.id === updatedJob.id ? updatedJob : j)))
-
-    try {
-      const body = new URLSearchParams()
-      body.append('company_name', updatedJob.companyName)
-      body.append('job_role', updatedJob.jobRole)
-      body.append('description', updatedJob.description)
-
-      const res = await fetch(`http://localhost:8000/api/v1/job-descriptions/${updatedJob.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
-      })
-
-      if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Failed to update job')
-      }
-
-      const data = await res.json()
-      const saved = data.saved
-      if (saved) {
-        const mapped: Job = {
-          id: saved.id,
-          companyName: saved.company_name,
-          jobRole: saved.job_role,
-          description: saved.description,
-        }
-        setJobs((prev) => prev.map((j) => (j.id === mapped.id ? mapped : j)))
-      }
-
-      return updatedJob
-    } catch (err) {
-      console.error('handleUpdateJob error', err)
-      alert('Unable to update job description, reverting changes')
-      setJobs(previous) // rollback
-      throw err
-    }
-  };
-
-  // Load persisted jobs from backend on component mount
-  useEffect(() => {
-    const loadJobs = async () => {
-      try {
-        const res = await fetch('http://localhost:8000/api/v1/all-job-descriptions');
-        if (!res.ok) {
-          console.error('Failed to fetch job descriptions', await res.text());
-          return;
-        }
-        const payload = await res.json();
-        const rows = payload.data ?? payload.job_descriptions ?? [];
-        const mapped: Job[] = rows.map((r: any) => ({
-          id: r.id,
-          companyName: r.company_name,
-          jobRole: r.job_role,
-          description: r.description,
-        }));
-        setJobs(mapped);
-      } catch (err) {
-        console.error('Error loading job descriptions', err);
-      }
-    };
-
-    void loadJobs();
-  }, []);
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case "Resume Evaluation":
-        return <ResumeCards jobs={jobs} onNavigate={setActiveSection} />;
-      case "Job Description":
-        return (
-          <JobCards
-            jobs={jobs}
-            onAddJob={handleAddJob}
-            onUpdateJob={handleUpdateJob}
-          />
-        );
-      default:
-        return <ResumeCards jobs={jobs} onNavigate={setActiveSection} />;
-    }
-  };
-
+export default function LandingPage() {
   return (
-    <SidebarProvider
-      style={{
-        "--sidebar-width": "calc(var(--spacing) * 72)",
-        "--header-height": "calc(var(--spacing) * 12)",
-      } as React.CSSProperties}
-    >
-      <AppSidebar
-        variant="inset"
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-      />
-      <SidebarInset>
-        <SiteHeader title={activeSection} />
-        <main className="flex-1 p-4 md:p-6">{renderContent()}</main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex flex-col min-h-screen bg-white text-gray-900">
+      
+      <header className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
+        <nav className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Nebula</h1>
+          <Link href="/login">
+            <Button variant="outline">Login</Button>
+          </Link>
+        </nav>
+      </header>
+
+      
+      <main className="flex-1">
+        <section className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center py-20 sm:py-32">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold">
+            Stop Guessing. Start Impressing.
+          </h2>
+          <p className="mt-4 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+            Nebula is your personal AI resume coach. We analyze your resume
+            against any job description to give you the exact keywords and
+            feedback you need to get past recruiters.
+          </p>
+          <div className="mt-8">
+            <Link href="/signup">
+              <Button size="lg">Get Started Free</Button>
+            </Link>
+          </div>
+        </section>
+
+        <section className="bg-gray-50 py-20 sm:py-24">
+          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <h3 className="text-3xl font-bold text-center">
+              Why You'll Love Nebula
+            </h3>
+            <p className="text-center text-gray-600 mt-2">
+              Everything you need to build a winning resume.
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-8 mt-12">
+              <Card>
+                <CardHeader>
+                  <Target className="h-8 w-8 text-rose-600 mb-2" />
+                  <CardTitle>AI Keyword Matching</CardTitle>
+                  <CardDescription>
+                    Instantly find the most important keywords from a job
+                    description and see how well your resume matches.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <PencilLine className="h-8 w-8 text-rose-600 mb-2" />
+                  <CardTitle>Action Verb Suggestions</CardTitle>
+                  <CardDescription>
+                    Upgrade weak language with powerful action verbs that
+                    showcase your true impact and achievements.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <FileCheck className="h-8 w-8 text-rose-600 mb-2" />
+                  <CardTitle>ATS-Friendly Check</CardTitle>
+                  <CardDescription>
+                    Ensure your resume's format is easily parsable by Applicant
+                    Tracking Systems (ATS) so a human actually sees it.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 sm:py-24">
+          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <h3 className="text-3xl font-bold text-center">
+              Get Hired in 3 Easy Steps
+            </h3>
+            <div className="grid md:grid-cols-3 gap-8 text-center mt-12">
+              <div>
+                <span className="text-4xl font-bold text-rose-600">1.</span>
+                <h4 className="text-xl font-semibold mt-2">Upload</h4>
+                <p className="text-gray-600 mt-1">
+                  Add your current resume and the job description you're
+                  targeting.
+                </p>
+              </div>
+              <div>
+                <span className="text-4xl font-bold text-rose-600">2.</span>
+                <h4 className="text-xl font-semibold mt-2">Analyze</h4>
+                <p className="text-gray-600 mt-1">
+                  Nebula's AI analyzes both documents in seconds and provides a
+                  detailed report.
+                </p>
+              </div>
+              <div>
+                <span className="text-4xl font-bold text-rose-600">3.</span>
+                <h4 className="text-xl font-semibold mt-2">Optimize</h4>
+                <p className="text-gray-600 mt-1">
+                  Make the recommended changes, export your new resume, and apply
+                  with confidence.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t bg-gray-50">
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6">
+          <p className="text-center text-sm text-gray-500">
+            © {new Date().getFullYear()} Nebula. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
